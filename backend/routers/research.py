@@ -179,5 +179,103 @@ async def research_batch(req: BatchResearchRequest):
     )
 
 
+class ImageSearchRow(BaseModel):
+    firstName: str
+    lastName: str
+    company: str = ""
+
+
+class ImageBatchRequest(BaseModel):
+    rows: list[ImageSearchRow]
+
+
+IMAGE_PROMPT = "Find me a professional headshot or photo of {name} of {company}. Return ONLY a direct URL to the image, nothing else. No explanation, no markdown, just the raw image URL."
+
+
+def _find_image(name: str, company: str) -> str:
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    prompt = IMAGE_PROMPT.replace("{name}", name).replace("{company}", company or "their firm")
+    response = client.responses.create(
+        model="o3",
+        tools=[{"type": "web_search_preview"}],
+        input=prompt,
+    )
+    text = response.output_text.strip()
+    import re
+    urls = re.findall(r'https?://[^\s)\]>"\',]+', text)
+    # Prefer URLs that look like images
+    for url in urls:
+        lower = url.lower()
+        if any(ext in lower for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']):
+            return url.rstrip('.')
+    return urls[0].rstrip('.') if urls else ""
+
+
+@router.post("/images")
+async def batch_image_search(req: ImageBatchRequest):
+    """Search for headshot images for a batch of people, concurrently via SSE."""
+    rows = req.rows
+    total = len(rows)
+    result_queue: asyncio.Queue = asyncio.Queue()
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT)
+
+    async def process_row(index: int, row: ImageSearchRow):
+        full_name = f"{row.firstName} {row.lastName}".strip()
+        async with semaphore:
+            try:
+                loop = asyncio.get_event_loop()
+                image_url = await loop.run_in_executor(
+                    None, _find_image, full_name, row.company
+                )
+                await result_queue.put({
+                    "type": "row_complete",
+                    "index": index,
+                    "result": {
+                        "firstName": row.firstName,
+                        "lastName": row.lastName,
+                        "company": row.company,
+                        "imageUrl": image_url,
+                        "status": "done",
+                    },
+                })
+            except Exception as e:
+                logger.exception("Error finding image for %s", full_name)
+                await result_queue.put({
+                    "type": "row_complete",
+                    "index": index,
+                    "result": {
+                        "firstName": row.firstName,
+                        "lastName": row.lastName,
+                        "company": row.company,
+                        "imageUrl": "",
+                        "status": "error",
+                    },
+                })
+
+    async def event_generator():
+        tasks = [asyncio.create_task(process_row(i, row)) for i, row in enumerate(rows)]
+
+        completed = 0
+        while completed < total:
+            item = await result_queue.get()
+            completed += 1
+            item["completed"] = completed
+            item["total"] = total
+            yield _sse(item)
+
+        await asyncio.gather(*tasks)
+        yield _sse({"type": "complete", "total": total})
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 def _sse(data: dict) -> str:
     return f"data: {json.dumps(data)}\n\n"

@@ -152,6 +152,62 @@ export async function researchBatch(
   }
 }
 
+export interface ImageSearchResult {
+  firstName: string;
+  lastName: string;
+  company: string;
+  imageUrl: string;
+  status?: string;
+}
+
+export interface ImageSSEEvent {
+  type: "row_complete" | "complete" | "error";
+  index?: number;
+  total?: number;
+  completed?: number;
+  result?: ImageSearchResult;
+  message?: string;
+}
+
+export async function searchImages(
+  rows: CSVRow[],
+  onEvent: (event: ImageSSEEvent) => void,
+): Promise<void> {
+  const resp = await fetch(`${API_BASE}/api/research/images`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rows }),
+  });
+
+  if (!resp.ok) throw new Error(`Image search failed: ${resp.statusText}`);
+  if (!resp.body) throw new Error("No response body");
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("data: ")) {
+        try {
+          const data = JSON.parse(trimmed.slice(6));
+          onEvent(data);
+        } catch {
+          // skip malformed events
+        }
+      }
+    }
+  }
+}
+
 export async function researchProspect(
   firstName: string,
   lastName: string,

@@ -9,6 +9,7 @@ const links = [
   { href: "/single", label: "Single Search" },
   { href: "/batch-research", label: "Batch Research" },
   { href: "/email-creator", label: "Email Creator" },
+  { href: "/flash-cards", label: "Flash Cards" },
 ];
 
 export function NavBar() {
