@@ -277,5 +277,53 @@ async def batch_image_search(req: ImageBatchRequest):
     )
 
 
+class FlashcardSetCreate(BaseModel):
+    name: str
+    cards: list[dict]
+
+
+class FlashcardSetResponse(BaseModel):
+    id: str
+    name: str
+    cards: list[dict]
+    created_at: str
+
+
+@router.post("/flashcard-sets", response_model=FlashcardSetResponse)
+async def save_flashcard_set(req: FlashcardSetCreate):
+    sb = get_client()
+    result = sb.table("flashcard_sets").insert({
+        "name": req.name,
+        "cards": req.cards,
+    }).execute()
+    row = result.data[0]
+    return FlashcardSetResponse(
+        id=row["id"],
+        name=row["name"],
+        cards=row["cards"],
+        created_at=str(row["created_at"]),
+    )
+
+
+@router.get("/flashcard-sets")
+async def list_flashcard_sets():
+    sb = get_client()
+    result = sb.table("flashcard_sets").select("id, name, created_at").order("created_at", desc=True).execute()
+    return result.data
+
+
+@router.get("/flashcard-sets/{set_id}", response_model=FlashcardSetResponse)
+async def get_flashcard_set(set_id: str):
+    sb = get_client()
+    result = sb.table("flashcard_sets").select("*").eq("id", set_id).single().execute()
+    row = result.data
+    return FlashcardSetResponse(
+        id=row["id"],
+        name=row["name"],
+        cards=row["cards"],
+        created_at=str(row["created_at"]),
+    )
+
+
 def _sse(data: dict) -> str:
     return f"data: {json.dumps(data)}\n\n"

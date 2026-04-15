@@ -229,3 +229,47 @@ export async function researchProspect(
   if (!resp.ok) throw new Error(`Research failed: ${resp.statusText}`);
   return resp.json();
 }
+
+// ── Flashcard Sets ────────────────────────────────────────────────────────────
+
+export interface FlashcardCard {
+  firstName: string;
+  lastName: string;
+  company: string;
+  imageUrl: string;
+}
+
+export interface FlashcardSetSummary {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface FlashcardSet {
+  id: string;
+  name: string;
+  cards: FlashcardCard[];
+  created_at: string;
+}
+
+export async function saveFlashcardSet(name: string, cards: FlashcardCard[]): Promise<FlashcardSet> {
+  const resp = await fetch(`${API_BASE}/api/research/flashcard-sets`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, cards }),
+  });
+  if (!resp.ok) throw new Error(`Save failed: ${resp.statusText}`);
+  return resp.json();
+}
+
+export async function listFlashcardSets(): Promise<FlashcardSetSummary[]> {
+  const resp = await fetch(`${API_BASE}/api/research/flashcard-sets`);
+  if (!resp.ok) throw new Error(`List failed: ${resp.statusText}`);
+  return resp.json();
+}
+
+export async function getFlashcardSet(id: string): Promise<FlashcardSet> {
+  const resp = await fetch(`${API_BASE}/api/research/flashcard-sets/${id}`);
+  if (!resp.ok) throw new Error(`Load failed: ${resp.statusText}`);
+  return resp.json();
+}
