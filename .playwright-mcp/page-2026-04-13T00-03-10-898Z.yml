@@ -1,0 +1,176 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link [ref=e164] [cursor=pointer]:
+        - /url: /
+        - text: Kalinda
+      - navigation [ref=e5]:
+        - link [ref=e165] [cursor=pointer]:
+          - /url: /batch
+          - text: Batch Search
+        - link [ref=e166] [cursor=pointer]:
+          - /url: /single
+          - text: Single Search
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - heading [level=1] [ref=e167]: Single Search
+        - paragraph [ref=e12]: Look up PACER MDL filings for one attorney.
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - text: First Name
+            - textbox [ref=e168]:
+              - /placeholder: John
+              - text: David
+          - generic [ref=e17]:
+            - text: Last Name
+            - textbox [ref=e169]:
+              - /placeholder: Smith
+              - text: Selby
+          - button [ref=e170]: Search
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - heading [level=2] [ref=e171]: David Selby
+              - generic [ref=e43]: 21 cases
+            - button [ref=e172]: Research
+          - generic [ref=e45]:
+            - heading [level=3] [ref=e173]: Filing Summary
+            - generic [ref=e47]: "* Total - 2025: 2 filings - 2024: 19 filings * v. 3M Company - 2024: 18 filings * v. Monsanto Company - 2025: 1 filings * v. Novo Nordisk A/S - 2024: 1 filings * v. Weiss - 2025: 1 filings"
+          - generic [ref=e48]:
+            - heading [level=3] [ref=e174]: Case Details (21)
+            - table [ref=e51]:
+              - rowgroup [ref=e52]:
+                - row [ref=e175]:
+                  - columnheader [ref=e176]: caseTitle
+                  - columnheader [ref=e177]: caseYear
+                  - columnheader [ref=e178]: dateFiled
+                  - columnheader [ref=e179]: jurisdictionType
+              - rowgroup [ref=e58]:
+                - row [ref=e180]:
+                  - cell [ref=e181]: Randy Allen Bassett v. 3M Company et al
+                  - cell [ref=e182]: "2024"
+                  - cell [ref=e183]: 2024-08-02
+                  - cell [ref=e184]: Multi-district Litigation
+                - row [ref=e185]:
+                  - cell [ref=e186]: James Winston Anderson v. 3M Company et al
+                  - cell [ref=e187]: "2024"
+                  - cell [ref=e188]: 2024-08-02
+                  - cell [ref=e189]: Multi-district Litigation
+                - row [ref=e190]:
+                  - cell [ref=e191]: Keith James Marzalen v. 3M Company et al
+                  - cell [ref=e192]: "2024"
+                  - cell [ref=e193]: 2024-08-02
+                  - cell [ref=e194]: Multi-district Litigation
+                - row [ref=e195]:
+                  - cell [ref=e196]: Taryn Penkala Null v. 3M Company et al
+                  - cell [ref=e197]: "2024"
+                  - cell [ref=e198]: 2024-08-05
+                  - cell [ref=e199]: Multi-district Litigation
+                - row [ref=e200]:
+                  - cell [ref=e201]: James Edward Johnson v. 3M Company et al
+                  - cell [ref=e202]: "2024"
+                  - cell [ref=e203]: 2024-08-08
+                  - cell [ref=e204]: Multi-district Litigation
+                - row [ref=e205]:
+                  - cell [ref=e206]: John Slunt v. 3M Company et al
+                  - cell [ref=e207]: "2024"
+                  - cell [ref=e208]: 2024-07-29
+                  - cell [ref=e209]: Multi-district Litigation
+                - row [ref=e210]:
+                  - cell [ref=e211]: Roger Free v. 3M Company et al
+                  - cell [ref=e212]: "2024"
+                  - cell [ref=e213]: 2024-07-23
+                  - cell [ref=e214]: Multi-district Litigation
+                - row [ref=e215]:
+                  - cell [ref=e216]: James Sullivan v. 3M Company et al
+                  - cell [ref=e217]: "2024"
+                  - cell [ref=e218]: 2024-07-19
+                  - cell [ref=e219]: Multi-district Litigation
+                - row [ref=e220]:
+                  - cell [ref=e221]: Crystal Sandoval (Estate of Joe Sandoval) v. 3M Company et al
+                  - cell [ref=e222]: "2024"
+                  - cell [ref=e223]: 2024-07-25
+                  - cell [ref=e224]: Multi-district Litigation
+                - row [ref=e225]:
+                  - cell [ref=e226]: Wayne Bearb v. 3M Company et al
+                  - cell [ref=e227]: "2024"
+                  - cell [ref=e228]: 2024-07-26
+                  - cell [ref=e229]: Multi-district Litigation
+                - row [ref=e230]:
+                  - cell [ref=e231]: Paula Guidry v. 3M Company et al
+                  - cell [ref=e232]: "2024"
+                  - cell [ref=e233]: 2024-07-24
+                  - cell [ref=e234]: Multi-district Litigation
+                - row [ref=e235]:
+                  - cell [ref=e236]: Darius Craig v. Novo Nordisk A/S et al
+                  - cell [ref=e237]: "2024"
+                  - cell [ref=e238]: 2024-08-07
+                  - cell [ref=e239]: Multi-district Litigation
+                - row [ref=e240]:
+                  - cell [ref=e241]: Rasheed Abdullatif v. 3M Company et al
+                  - cell [ref=e242]: "2024"
+                  - cell [ref=e243]: 2024-08-01
+                  - cell [ref=e244]: Multi-district Litigation
+                - row [ref=e245]:
+                  - cell [ref=e246]: John Allen Dear v. 3M Company et al
+                  - cell [ref=e247]: "2024"
+                  - cell [ref=e248]: 2024-08-01
+                  - cell [ref=e249]: Multi-district Litigation
+                - row [ref=e250]:
+                  - cell [ref=e251]: Marvin Ernest Ellis v. 3M Company et al
+                  - cell [ref=e252]: "2024"
+                  - cell [ref=e253]: 2024-08-01
+                  - cell [ref=e254]: Multi-district Litigation
+                - row [ref=e255]:
+                  - cell [ref=e256]: Christopher Sensi v. 3M Company et al
+                  - cell [ref=e257]: "2024"
+                  - cell [ref=e258]: 2024-08-16
+                  - cell [ref=e259]: Multi-district Litigation
+                - row [ref=e260]:
+                  - cell [ref=e261]: Michael Slivkoff v. 3M Company et al
+                  - cell [ref=e262]: "2024"
+                  - cell [ref=e263]: 2024-08-16
+                  - cell [ref=e264]: Multi-district Litigation
+                - row [ref=e265]:
+                  - cell [ref=e266]: Harry Stephen Sellers v. 3M Company et al
+                  - cell [ref=e267]: "2024"
+                  - cell [ref=e268]: 2024-08-16
+                  - cell [ref=e269]: Multi-district Litigation
+                - row [ref=e270]:
+                  - cell [ref=e271]: Kimbrough v. 3M Company et al
+                  - cell [ref=e272]: "2024"
+                  - cell [ref=e273]: 2024-08-30
+                  - cell [ref=e274]: Multi-district Litigation
+                - row [ref=e275]:
+                  - cell [ref=e276]: Doe 1 et al v. Weiss et al
+                  - cell [ref=e277]: "2025"
+                  - cell [ref=e278]: 2025-03-21
+                  - cell [ref=e279]: Multi-district Litigation
+                - row [ref=e280]:
+                  - cell [ref=e281]: Dressel v. Monsanto Company et al
+                  - cell [ref=e282]: "2025"
+                  - cell [ref=e283]: 2025-08-21
+                  - cell [ref=e284]: Multi-district Litigation
+      - complementary [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - heading [level=2] [ref=e285]: Research
+            - paragraph [ref=e37]: David Selby
+          - button [ref=e23]:
+            - img
+        - paragraph [ref=e25]: No research results yet.
+  - button "Open Next.js Dev Tools" [ref=e31] [cursor=pointer]:
+    - img [ref=e32]
+  - alert [ref=e35]
+  - dialog "Confirm Research Prompt" [ref=e303]:
+    - heading "Confirm Research Prompt" [level=2] [ref=e305]
+    - paragraph [ref=e306]: Review the prompt below before sending to OpenAI. You can edit it if needed.
+    - textbox [active] [ref=e307]: Search the entire internet and give me recent blogs, articles, podcast appearances, featured videos or anything written by / published about David Selby of Bailey Glasser within the last 48 months. I am writing an email with a personalization and I want to know of anything he wrote, talked about on a podcast or was featured in. Also see if they are leadership in any mass torts
+    - generic [ref=e308]:
+      - button "Cancel" [ref=e309]
+      - button "Run Research" [ref=e310]
+    - button "Close" [ref=e311]:
+      - img
+      - generic [ref=e312]: Close

@@ -1,0 +1,36 @@
+services:
+  # ── FastAPI Backend ───────────────────────────────────────────────────────────
+  - type: web
+    name: kalinda-api
+    runtime: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PACER_LOGIN_ID
+        sync: false
+      - key: PACER_PASSWORD
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+
+  # ── Next.js Frontend ──────────────────────────────────────────────────────────
+  - type: web
+    name: kalinda-frontend
+    runtime: node
+    region: oregon
+    plan: starter
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      # Set this to your kalinda-api Render URL after deploying the backend first
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: APP_PASSWORD
+        value: SeattleDenver12##

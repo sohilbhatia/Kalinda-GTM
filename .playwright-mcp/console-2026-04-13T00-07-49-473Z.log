@@ -1,0 +1,5 @@
+[     902ms] [LOG] Messaging without detection successfully executed. @ https://cdn.privacy-mgmt.com/unified/wrapperMessagingWithoutDetection.js:0
+[    1303ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://gk-api.bloomberglaw.com/auth/v1/tokenRefresh:0
+[    1369ms] [WARNING] You can be lazier! The properties `aiEnabled` and `pageTitle` for the event Article Viewed are generated automatically and do not need to be set in your event call. @ https://news.bloomberglaw.com/assets/index-CTEUm-iZ.js:1174
+[    2088ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    2091ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
