@@ -58,18 +58,14 @@ function parseCSV(text: string): { firstName: string; lastName: string; company:
   }).filter((r) => r.firstName || r.lastName);
 }
 
-// ── Flip Card ─────────────────────────────────────────────────────────────────
+// ── Flash Card ────────────────────────────────────────────────────────────────
 
-function FlipCard({
+function FlashCard({
   card,
-  flipped,
-  onFlip,
   onSwipeLeft,
   onSwipeRight,
 }: {
   card: FlashcardCard;
-  flipped: boolean;
-  onFlip: () => void;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
 }) {
@@ -82,76 +78,42 @@ function FlipCard({
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) {
-      dx < 0 ? onSwipeLeft() : onSwipeRight();
-    } else {
-      onFlip();
-    }
+    if (dx < -50) onSwipeLeft();
+    else if (dx > 50) onSwipeRight();
     touchStartX.current = null;
   };
 
   return (
     <div
-      className="w-full h-full cursor-pointer select-none"
-      style={{ perspective: "1200px" }}
-      onClick={onFlip}
+      className="w-full h-full rounded-2xl border bg-white shadow-xl overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div
-        className="relative w-full h-full"
-        style={{
-          transformStyle: "preserve-3d",
-          transition: "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
-          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-        }}
-      >
-        {/* Front – photo */}
-        <div
-          className="absolute inset-0 rounded-2xl border bg-white shadow-xl overflow-hidden"
-          style={{ backfaceVisibility: "hidden" }}
-        >
-          {card.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={card.imageUrl}
-              alt="Who is this?"
-              className="h-full w-full object-cover"
-              draggable={false}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-muted">
-              <span className="text-7xl font-bold text-muted-foreground/20">?</span>
-            </div>
-          )}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-            <span className="rounded-full bg-black/40 px-4 py-1.5 text-sm text-white backdrop-blur-sm">
-              Tap to reveal
+      <div className="relative w-full" style={{ height: "75%" }}>
+        {card.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={card.imageUrl}
+            alt={`${card.firstName} ${card.lastName}`}
+            className="h-full w-full object-cover"
+            draggable={false}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <span className="text-7xl font-bold text-muted-foreground/20">
+              {(card.firstName?.[0] || "")}{(card.lastName?.[0] || "")}
             </span>
           </div>
-        </div>
-
-        {/* Back – name + firm */}
-        <div
-          className="absolute inset-0 rounded-2xl border bg-white shadow-xl flex flex-col items-center justify-center gap-4 px-8"
-          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-        >
-          <div className="text-6xl font-bold text-muted-foreground/10">
-            {(card.firstName?.[0] || "")}{(card.lastName?.[0] || "")}
-          </div>
-          <h2 className="text-2xl font-semibold tracking-tight text-center leading-snug">
-            {card.firstName} {card.lastName}
-          </h2>
-          {card.company && (
-            <p className="text-base text-muted-foreground text-center">{card.company}</p>
-          )}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-            <span className="rounded-full bg-black/10 px-4 py-1.5 text-sm text-muted-foreground">
-              Tap to flip back
-            </span>
-          </div>
-        </div>
+        )}
+      </div>
+      <div className="flex flex-col items-center justify-center px-4" style={{ height: "25%" }}>
+        <h2 className="text-xl font-semibold tracking-tight text-center leading-snug">
+          {card.firstName} {card.lastName}
+        </h2>
+        {card.company && (
+          <p className="mt-1 text-sm text-muted-foreground text-center">{card.company}</p>
+        )}
       </div>
     </div>
   );
@@ -167,35 +129,26 @@ function FlashCardViewer({
   onFinished: () => void;
 }) {
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [flipped, setFlipped] = useState(false);
 
   const goNext = useCallback(() => {
     setCurrentIdx((prev) => {
       if (prev + 1 >= cards.length) { onFinished(); return prev; }
-      setFlipped(false);
       return prev + 1;
     });
   }, [cards.length, onFinished]);
 
   const goPrev = useCallback(() => {
-    setCurrentIdx((prev) => {
-      if (prev === 0) return prev;
-      setFlipped(false);
-      return prev - 1;
-    });
+    setCurrentIdx((prev) => Math.max(0, prev - 1));
   }, []);
-
-  const toggleFlip = useCallback(() => setFlipped((f) => !f), []);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") goNext();
       else if (e.key === "ArrowLeft") goPrev();
-      else if (e.key === " ") { e.preventDefault(); toggleFlip(); }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [goNext, goPrev, toggleFlip]);
+  }, [goNext, goPrev]);
 
   if (cards.length === 0) return null;
 
@@ -211,7 +164,6 @@ function FlashCardViewer({
 
       {/* Card + flanking arrows */}
       <div className="flex items-center gap-2 w-full justify-center">
-        {/* Left arrow */}
         <button
           onClick={goPrev}
           disabled={atStart}
@@ -223,18 +175,10 @@ function FlashCardViewer({
           </svg>
         </button>
 
-        {/* Card */}
         <div style={{ width: "min(320px, calc(100vw - 112px))", height: "min(460px, 72vh)", flexShrink: 0 }}>
-          <FlipCard
-            card={cards[currentIdx]}
-            flipped={flipped}
-            onFlip={toggleFlip}
-            onSwipeLeft={goNext}
-            onSwipeRight={goPrev}
-          />
+          <FlashCard card={cards[currentIdx]} onSwipeLeft={goNext} onSwipeRight={goPrev} />
         </div>
 
-        {/* Right arrow */}
         <button
           onClick={goNext}
           aria-label={atEnd ? "Finish" : "Next card"}
@@ -251,7 +195,7 @@ function FlashCardViewer({
         {cards.map((_, i) => (
           <button
             key={i}
-            onClick={() => { setCurrentIdx(i); setFlipped(false); }}
+            onClick={() => setCurrentIdx(i)}
             aria-label={`Go to card ${i + 1}`}
             className={`w-2 h-2 rounded-full transition-all touch-manipulation ${
               i === currentIdx ? "bg-foreground scale-125" : "bg-muted-foreground/30"
@@ -261,7 +205,7 @@ function FlashCardViewer({
       </div>
 
       <p className="text-xs text-muted-foreground/50">
-        Tap card to flip · swipe or use ← → to navigate
+        Swipe or use ← → to navigate
       </p>
     </div>
   );
