@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { CSVDropzone } from "@/components/csv-dropzone";
 import { ProgressBar } from "@/components/progress-bar";
 import { Button } from "@/components/ui/button";
@@ -58,106 +58,108 @@ function parseCSV(text: string): { firstName: string; lastName: string; company:
   }).filter((r) => r.firstName || r.lastName);
 }
 
-// ── Tinder-style Card ─────────────────────────────────────────────────────────
+// ── Flip Card ─────────────────────────────────────────────────────────────────
 
-function TinderCard({
+function FlipCard({
   card,
-  onSwipe,
-  isTop,
+  flipped,
+  onFlip,
+  onSwipeLeft,
+  onSwipeRight,
 }: {
   card: FlashcardCard;
-  onSwipe: () => void;
-  isTop: boolean;
+  flipped: boolean;
+  onFlip: () => void;
+  onSwipeLeft: () => void;
+  onSwipeRight: () => void;
 }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [drag, setDrag] = useState({ x: 0, y: 0, active: false, startX: 0, startY: 0 });
-  const [exiting, setExiting] = useState<"left" | "right" | null>(null);
+  const touchStartX = useRef<number | null>(null);
 
-  const rotation = drag.x * 0.08;
-  const opacity = Math.max(0.4, 1 - Math.abs(drag.x) / 400);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (!isTop) return;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    setDrag({ x: 0, y: 0, active: true, startX: e.clientX, startY: e.clientY });
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!drag.active) return;
-    setDrag((d) => ({
-      ...d,
-      x: e.clientX - d.startX,
-      y: e.clientY - d.startY,
-    }));
-  };
-
-  const handlePointerUp = () => {
-    if (!drag.active) return;
-    if (Math.abs(drag.x) > 100) {
-      setExiting(drag.x > 0 ? "right" : "left");
-      setTimeout(onSwipe, 300);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 50) {
+      dx < 0 ? onSwipeLeft() : onSwipeRight();
+    } else {
+      onFlip();
     }
-    setDrag({ x: 0, y: 0, active: false, startX: 0, startY: 0 });
+    touchStartX.current = null;
   };
-
-  const style = exiting
-    ? {
-        transform: `translateX(${exiting === "right" ? 800 : -800}px) rotate(${exiting === "right" ? 30 : -30}deg)`,
-        opacity: 0,
-        transition: "transform 0.3s ease-out, opacity 0.3s ease-out",
-      }
-    : {
-        transform: `translateX(${drag.x}px) translateY(${drag.y * 0.3}px) rotate(${rotation}deg)`,
-        opacity,
-        transition: drag.active ? "none" : "transform 0.3s ease, opacity 0.3s ease",
-        cursor: isTop ? "grab" : "default",
-        zIndex: isTop ? 10 : 1,
-      };
 
   return (
     <div
-      ref={cardRef}
-      className="absolute inset-0"
-      style={style}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
+      className="w-full h-full cursor-pointer select-none"
+      style={{ perspective: "1200px" }}
+      onClick={onFlip}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      <div className="w-full h-full overflow-hidden rounded-2xl border bg-white shadow-xl select-none">
-        <div className="relative w-full" style={{ height: "75%" }}>
+      <div
+        className="relative w-full h-full"
+        style={{
+          transformStyle: "preserve-3d",
+          transition: "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
+          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* Front – photo */}
+        <div
+          className="absolute inset-0 rounded-2xl border bg-white shadow-xl overflow-hidden"
+          style={{ backfaceVisibility: "hidden" }}
+        >
           {card.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={card.imageUrl}
-              alt={`${card.firstName} ${card.lastName}`}
-              className="h-full w-full object-cover pointer-events-none"
+              alt="Who is this?"
+              className="h-full w-full object-cover"
               draggable={false}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-muted">
-              <div className="text-7xl font-bold text-muted-foreground/20">
-                {(card.firstName?.[0] || "")}{(card.lastName?.[0] || "")}
-              </div>
+              <span className="text-7xl font-bold text-muted-foreground/20">?</span>
             </div>
           )}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <span className="rounded-full bg-black/40 px-4 py-1.5 text-sm text-white backdrop-blur-sm">
+              Tap to reveal
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col items-center justify-center px-4" style={{ height: "25%" }}>
-          <h2 className="text-xl font-semibold tracking-tight text-center">
+
+        {/* Back – name + firm */}
+        <div
+          className="absolute inset-0 rounded-2xl border bg-white shadow-xl flex flex-col items-center justify-center gap-4 px-8"
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+        >
+          <div className="text-6xl font-bold text-muted-foreground/10">
+            {(card.firstName?.[0] || "")}{(card.lastName?.[0] || "")}
+          </div>
+          <h2 className="text-2xl font-semibold tracking-tight text-center leading-snug">
             {card.firstName} {card.lastName}
           </h2>
           {card.company && (
-            <p className="mt-1 text-sm text-muted-foreground text-center">{card.company}</p>
+            <p className="text-base text-muted-foreground text-center">{card.company}</p>
           )}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <span className="rounded-full bg-black/10 px-4 py-1.5 text-sm text-muted-foreground">
+              Tap to flip back
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Tinder Viewer ─────────────────────────────────────────────────────────────
+// ── Flash Card Viewer ──────────────────────────────────────────────────────────
 
-function TinderViewer({
+function FlashCardViewer({
   cards,
   onFinished,
 }: {
@@ -165,58 +167,101 @@ function TinderViewer({
   onFinished: () => void;
 }) {
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        setCurrentIdx((prev) => {
-          const next = prev + 1;
-          if (next >= cards.length) { onFinished(); return prev; }
-          return next;
-        });
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [cards.length, onFinished]);
-
-  const handleSwipe = useCallback(() => {
+  const goNext = useCallback(() => {
     setCurrentIdx((prev) => {
-      const next = prev + 1;
-      if (next >= cards.length) {
-        setTimeout(onFinished, 100);
-        return prev;
-      }
-      return next;
+      if (prev + 1 >= cards.length) { onFinished(); return prev; }
+      setFlipped(false);
+      return prev + 1;
     });
   }, [cards.length, onFinished]);
 
+  const goPrev = useCallback(() => {
+    setCurrentIdx((prev) => {
+      if (prev === 0) return prev;
+      setFlipped(false);
+      return prev - 1;
+    });
+  }, []);
+
+  const toggleFlip = useCallback(() => setFlipped((f) => !f), []);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") goNext();
+      else if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === " ") { e.preventDefault(); toggleFlip(); }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [goNext, goPrev, toggleFlip]);
+
   if (cards.length === 0) return null;
 
-  const visibleCards = cards.slice(currentIdx, currentIdx + 2).reverse();
+  const atStart = currentIdx === 0;
+  const atEnd = currentIdx + 1 >= cards.length;
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full">
-      <div
-        className="relative mx-auto"
-        style={{ width: "min(340px, 90vw)", height: "min(480px, 75vh)" }}
-      >
-        {visibleCards.map((card, i) => (
-          <TinderCard
-            key={currentIdx + visibleCards.length - 1 - i}
-            card={card}
-            onSwipe={handleSwipe}
-            isTop={i === visibleCards.length - 1}
+    <div className="flex flex-col items-center gap-5 w-full px-2">
+      {/* Counter */}
+      <p className="text-sm text-muted-foreground tabular-nums">
+        {currentIdx + 1} / {cards.length}
+      </p>
+
+      {/* Card + flanking arrows */}
+      <div className="flex items-center gap-2 w-full justify-center">
+        {/* Left arrow */}
+        <button
+          onClick={goPrev}
+          disabled={atStart}
+          aria-label="Previous card"
+          className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full border bg-white shadow-sm disabled:opacity-20 active:scale-95 transition-all touch-manipulation"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Card */}
+        <div style={{ width: "min(320px, calc(100vw - 112px))", height: "min(460px, 72vh)", flexShrink: 0 }}>
+          <FlipCard
+            card={cards[currentIdx]}
+            flipped={flipped}
+            onFlip={toggleFlip}
+            onSwipeLeft={goNext}
+            onSwipeRight={goPrev}
+          />
+        </div>
+
+        {/* Right arrow */}
+        <button
+          onClick={goNext}
+          aria-label={atEnd ? "Finish" : "Next card"}
+          className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full border bg-white shadow-sm active:scale-95 transition-all touch-manipulation"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Dot indicators */}
+      <div className="flex gap-1.5 flex-wrap justify-center max-w-xs">
+        {cards.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setCurrentIdx(i); setFlipped(false); }}
+            aria-label={`Go to card ${i + 1}`}
+            className={`w-2 h-2 rounded-full transition-all touch-manipulation ${
+              i === currentIdx ? "bg-foreground scale-125" : "bg-muted-foreground/30"
+            }`}
           />
         ))}
       </div>
 
-      <p className="text-sm text-muted-foreground tabular-nums">
-        {Math.min(currentIdx + 1, cards.length)} / {cards.length}
-      </p>
-
-      <p className="text-xs text-muted-foreground/60">
-        Swipe or use arrow keys
+      <p className="text-xs text-muted-foreground/50">
+        Tap card to flip · swipe or use ← → to navigate
       </p>
     </div>
   );
@@ -327,8 +372,8 @@ export default function FlashCardsPage() {
   }, [phase]);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="mb-8 text-center">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mb-6 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Flash Cards</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Upload a CSV of attorneys to generate photo flash cards.
@@ -336,7 +381,7 @@ export default function FlashCardsPage() {
       </div>
 
       {error && (
-        <div className="mx-auto mb-6 max-w-md rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        <div className="mb-6 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
           <button className="ml-2 underline" onClick={() => setError(null)}>dismiss</button>
         </div>
@@ -345,19 +390,17 @@ export default function FlashCardsPage() {
       {/* ── Home: upload + saved sets ── */}
       {phase === "home" && (
         <div className="space-y-8">
-          <div className="mx-auto max-w-md">
-            <CSVDropzone onFile={handleFile} disabled={false} />
-          </div>
+          <CSVDropzone onFile={handleFile} disabled={false} />
 
           {!loadingSets && savedSets.length > 0 && (
-            <div className="mx-auto max-w-md space-y-3">
+            <div className="space-y-3">
               <h3 className="text-sm font-semibold">Saved Sets</h3>
               <div className="space-y-2">
                 {savedSets.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => handleLoadSet(s.id)}
-                    className="flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors hover:bg-muted/50"
+                    className="flex w-full items-center justify-between rounded-xl border px-4 py-4 text-left transition-colors hover:bg-muted/50 active:bg-muted touch-manipulation"
                   >
                     <span className="text-sm font-medium">{s.name}</span>
                     <span className="text-xs text-muted-foreground">
@@ -373,7 +416,7 @@ export default function FlashCardsPage() {
 
       {/* ── Loading: progress ── */}
       {phase === "loading" && (
-        <div className="mx-auto max-w-md space-y-6">
+        <div className="space-y-6">
           <ProgressBar current={completed} total={total} name="Finding photos…" />
           {cards.length > 0 && (
             <p className="text-center text-sm text-muted-foreground">
@@ -383,25 +426,20 @@ export default function FlashCardsPage() {
         </div>
       )}
 
-      {/* ── Cards: Tinder viewer ── */}
+      {/* ── Cards: flip card viewer ── */}
       {phase === "cards" && cards.length > 0 && (
-        <TinderViewer cards={cards} onFinished={handleFinished} />
+        <FlashCardViewer cards={cards} onFinished={handleFinished} />
       )}
 
       {/* ── Done ── */}
       {phase === "done" && (
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-5">
           <p className="text-lg font-semibold">All cards reviewed!</p>
           <div className="flex justify-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setPhase("cards")}
-            >
+            <Button variant="outline" className="h-12 px-6 touch-manipulation" onClick={() => setPhase("cards")}>
               Review Again
             </Button>
-            <Button
-              onClick={() => { setPhase("home"); setCards([]); }}
-            >
+            <Button className="h-12 px-6 touch-manipulation" onClick={() => { setPhase("home"); setCards([]); }}>
               Back to Home
             </Button>
           </div>
@@ -410,7 +448,7 @@ export default function FlashCardsPage() {
 
       {/* ── Save dialog ── */}
       <Dialog open={saveOpen} onOpenChange={(o) => { if (!o) handleSkipSave(); }}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm mx-4">
           <DialogHeader>
             <DialogTitle>Name this flash card set</DialogTitle>
           </DialogHeader>
@@ -418,17 +456,18 @@ export default function FlashCardsPage() {
             {cards.length} card{cards.length !== 1 ? "s" : ""} ready. Give it a name to save for later.
           </p>
           <Input
+            className="h-12 text-base"
             placeholder="e.g. MTMP Spring 2026"
             value={setName}
             onChange={(e) => setSetName(e.target.value)}
             autoFocus
             onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
           />
-          <DialogFooter>
-            <Button variant="ghost" onClick={handleSkipSave}>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" className="h-12 touch-manipulation" onClick={handleSkipSave}>
               Skip
             </Button>
-            <Button onClick={handleSave} disabled={saving || !setName.trim()}>
+            <Button className="h-12 touch-manipulation" onClick={handleSave} disabled={saving || !setName.trim()}>
               {saving ? "Saving…" : "Save & Start"}
             </Button>
           </DialogFooter>
