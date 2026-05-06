@@ -34,3 +34,11 @@ services:
         sync: false
       - key: APP_PASSWORD
         sync: false
+      # Lightfield – used by /api/firm-demos/sync
+      - key: LIGHTFIELD_API_KEY
+        sync: false
+      # Supabase (Kalinda-GTM project) – firm_demo_meetings table
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false

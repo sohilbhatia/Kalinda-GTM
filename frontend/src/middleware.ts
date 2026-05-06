@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+function withPathHeader(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Always allow login page and auth API
   if (pathname.startsWith("/login") || pathname.startsWith("/api/auth")) {
-    return NextResponse.next();
+    return withPathHeader(request);
   }
 
   const session = request.cookies.get("kalinda_session");
@@ -16,7 +22,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  return withPathHeader(request);
 }
 
 export const config = {

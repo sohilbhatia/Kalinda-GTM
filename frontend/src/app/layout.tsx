@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 import "./globals.css";
-import { NavBar } from "@/components/nav-bar";
+import { Sidebar } from "@/components/sidebar";
 
 const sfPro = localFont({
   src: [
@@ -19,16 +20,26 @@ export const metadata: Metadata = {
   description: "PACER prospect search and research tool",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const h = await headers();
+  const pathname = h.get("x-pathname") || "";
+  const isLogin = pathname.startsWith("/login");
+
   return (
     <html lang="en" className={`${sfPro.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-[family-name:var(--font-sf-pro)]">
-        <NavBar />
-        <main className="flex-1">{children}</main>
+      <body className="min-h-full bg-background font-[family-name:var(--font-sf-pro)]">
+        {isLogin ? (
+          <main className="min-h-screen">{children}</main>
+        ) : (
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 min-w-0">{children}</main>
+          </div>
+        )}
       </body>
     </html>
   );
